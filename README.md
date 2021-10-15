@@ -1,2 +1,2 @@
-# SonifikationStudien
+# SonificationStudien
 Sonifkation of errors.
