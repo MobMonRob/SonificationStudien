@@ -1,0 +1,1 @@
+mvn install:install-file -Dfile=./lib/JViconDataStream-Win-2.0-SNAPSHOT.jar -DgroupId=de.dhbw.rahmlab.vicon -DartifactId=datastream -Dversion=2.0 -Dpackaging=jar
