@@ -15,7 +15,7 @@ public class MarkerTracker
 	{
 		this.client = client;
 		markerTrackerTimer = new MarkerTrackerTimer(this);
-		markerTrackerTimer.run();
+		markerTrackerTimer.start();
 	}
 
 	/**
