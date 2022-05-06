@@ -21,7 +21,7 @@ public class DataStreamClientProvider
 		// Hide public constructor
 	}
 
-	public static DataStreamClient getConnectedDataStreamClient()
+	public static DataStreamClient getClient()
 	{
 		if (dataStreamClient == null)
 		{
