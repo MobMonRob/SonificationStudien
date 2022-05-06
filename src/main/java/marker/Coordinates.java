@@ -1,12 +1,12 @@
 package marker;
 
-public class MarkerCoordinates
+public class Coordinates
 {
 	private final double x;
 	private final double y;
 	private final double z;
 
-	public MarkerCoordinates(double xCoordinate, double yCoordinate, double zCoordinate)
+	public Coordinates(double xCoordinate, double yCoordinate, double zCoordinate)
 	{
 		this.x = xCoordinate;
 		this.y = yCoordinate;
@@ -36,12 +36,12 @@ public class MarkerCoordinates
 	@Override
 	public boolean equals(Object markerCoordinatesObject)
 	{
-		if (!(markerCoordinatesObject instanceof MarkerCoordinates))
+		if (!(markerCoordinatesObject instanceof Coordinates))
 		{
 			return false;
 		}
 
-		MarkerCoordinates markerCoordinates = (MarkerCoordinates) markerCoordinatesObject;
+		Coordinates markerCoordinates = (Coordinates) markerCoordinatesObject;
 
 		int compareResult = compareTo(markerCoordinates.getX(), markerCoordinates.getY(),
 				markerCoordinates.getZ());
