@@ -1,3 +1,4 @@
 /target/
 *.DS_Store
 *bin
+/hs_err_pid9980.log
