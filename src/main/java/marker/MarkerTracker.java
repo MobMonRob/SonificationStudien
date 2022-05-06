@@ -2,128 +2,112 @@ package marker;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import de.dhbw.rahmlab.vicon.datastream.api.DataStreamClient;
 
 public class MarkerTracker
 {
-	private static List<Marker> markers = new ArrayList<>();
+	private List<Marker> markers = new ArrayList<>();
+	private DataStreamClient client;
+	private MarkerTrackerTimer markerTrackerTimer;
 
-	private MarkerTracker()
+	public MarkerTracker(DataStreamClient client)
 	{
-		// static class needs no constructor
+		this.client = client;
+		markerTrackerTimer = new MarkerTrackerTimer(this);
+		markerTrackerTimer.run();
 	}
 
-	public static boolean isMarkerInList(List<Marker> markerList, Marker marker)
+	/**
+	 * Capture all markers which are currently visible and save it internally
+	 * for subsequent uses.
+	 * 
+	 * @return A list with all captured (visible) markers (See also
+	 *         {@link #getVisibleMarkers(List)})
+	 */
+	public List<Marker> captureCurrentMarkers()
 	{
-		return getMarkerIndexInList(markerList, marker) != -1;
+		markers = getVisibleMarkers(trackMarkerData());
+		return markers;
 	}
 
-	private static int getMarkerIndexInList(List<Marker> markerList, Marker marker)
+	/**
+	 * @return A list with all markers which are registered in vicon system -
+	 *         visible and not visible
+	 */
+	public List<Marker> trackMarkerData()
 	{
-		for (int i = 0; i < markerList.size(); i++)
-		{
-			if (markerList.get(i).name().equals(marker.name()))
-			{
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	public static void captureCurrentMarkers()
-	{
-		markers = trackNewMarkerData();
-	}
-
-	public static List<Marker> trackAndGetChangedMarkers()
-	{
-		if (markers.isEmpty())
-		{
-			captureCurrentMarkers();
-		}
-
-		List<Marker> changedMarkers = new ArrayList<>();
-		for (Marker newMarker : trackNewMarkerData())
-		{
-			Optional<Marker> oldMarker = getCapturedMarker(newMarker.name());
-			if (oldMarker.isPresent() && !isMarkerDataEqual(oldMarker.get(), newMarker))
-			{
-				changedMarkers.add(newMarker);
-			}
-		}
-
-		return changedMarkers;
-	}
-
-	public static List<Marker> trackAndGetNewMarkers()
-	{
-		if (markers.isEmpty())
-		{
-			captureCurrentMarkers();
-			return markers;
-		}
-
-		List<Marker> newMarkersToReturn = new ArrayList<>();
-		for (Marker newMarker : trackNewMarkerData())
-		{
-			if (getCapturedMarker(newMarker.name()).isEmpty())
-			{
-				newMarkersToReturn.add(newMarker);
-			}
-		}
-
-		return newMarkersToReturn;
-	}
-
-	public static List<Marker> trackAndGetNotVisibleMarkers()
-	{
-		if (markers.isEmpty())
-		{
-			captureCurrentMarkers();
-		}
-
-		List<Marker> notVisibleMarkers = new ArrayList<>();
-		for (Marker marker : trackNewMarkerData())
-		{
-			if (isMarkerNotVisible(marker))
-			{
-				notVisibleMarkers.add(marker);
-			}
-		}
-
-		return notVisibleMarkers;
-	}
-
-	public static List<Marker> trackNewMarkerData()
-	{
-		DataStreamClient client = DataStreamClientProvider.getConnectedDataStreamClient();
-		client.getFrame();
-
-		List<Marker> markersOfAllSubjects = new ArrayList<>();
+		List<Marker> newMarkers = new ArrayList<>();
 
 		long subjectCount = client.getSubjectCount();
 		for (int i = 0; i < subjectCount; i++)
 		{
-			List<Marker> markersInSubject = captureCurrentMarkersInSubject(client,
-					client.getSubjectName(i));
-			markersOfAllSubjects.addAll(markersInSubject);
+			String subject = client.getSubjectName(i);
+			newMarkers.addAll(markersInSubject(client, subject));
 		}
 
-		return markersOfAllSubjects;
+		return newMarkers;
 	}
 
-	private static boolean isMarkerNotVisible(Marker marker)
+	/**
+	 * @return A list with all previously captured markers, which are not
+	 *         visible anymore (See also {@link #getNotVisibleMarkers(List)})
+	 */
+	public List<Marker> getNotVisibleMarkers()
 	{
-		DataStreamClient client = DataStreamClientProvider.getConnectedDataStreamClient();
-		long markerRayContributionCount = client.getMarkerRayContributionCount(marker.subject(),
-				marker.name());
-		return markerRayContributionCount < 2;
+		if (markers.isEmpty())
+		{
+			captureCurrentMarkers();
+		}
+
+		return getNotVisibleMarkers(markers);
 	}
 
-	private static List<Marker> captureCurrentMarkersInSubject(DataStreamClient client,
-			String subjectName)
+	/**
+	 * @param markerList
+	 * @return A list with all markers in given list, which are not visible <br>
+	 *         (not visible = marker is captured by less than 2 cameras)
+	 */
+	public List<Marker> getVisibleMarkers(List<Marker> markerList)
+	{
+		return markerList.stream().filter(this::isMarkerVisible).toList();
+	}
+
+	/**
+	 * @param markerList
+	 * @return A list with all markers in given list, which are visible <br>
+	 *         (visible = marker is captured by minimum 2 cameras)
+	 */
+	public List<Marker> getNotVisibleMarkers(List<Marker> markerList)
+	{
+		return markerList.stream().filter(marker -> !(isMarkerVisible(marker))).toList();
+	}
+
+	public void startMarkerTrackerTimer()
+	{
+		if (!markerTrackerTimer.isAlive())
+		{
+			markerTrackerTimer.run();
+		}
+	}
+
+	public void stopMarkerTrackerTimer()
+	{
+		if (markerTrackerTimer.isAlive())
+		{
+			markerTrackerTimer.interrupt();
+		}
+	}
+
+	private boolean isMarkerVisible(Marker marker)
+	{
+		String subject = marker.subject();
+		String markerName = marker.name();
+		long viewCount = client.getMarkerRayContributionCount(subject, markerName);
+		return viewCount >= 2;
+	}
+
+	private List<Marker> markersInSubject(DataStreamClient client, String subjectName)
 	{
 		List<Marker> markersOfSubject = new ArrayList<>();
 
@@ -133,7 +117,7 @@ public class MarkerTracker
 			String markerName = client.getMarkerName(subjectName, i);
 
 			double[] coordinates = client.getMarkerGlobalTranslation(subjectName, markerName);
-			MarkerCoordinates markerCoordinates = new MarkerCoordinates(coordinates[0],
+			Coordinates markerCoordinates = new Coordinates(coordinates[0],
 					coordinates[1], coordinates[2]);
 
 			Marker marker = new Marker(subjectName, markerName, markerCoordinates);
@@ -141,27 +125,5 @@ public class MarkerTracker
 		}
 
 		return markersOfSubject;
-	}
-
-	private static boolean isMarkerDataEqual(Marker markerA, Marker markerB)
-	{
-		boolean subjectNameIsEqual = markerA.subject().equals(markerB.subject());
-		boolean markerNameIsEqual = markerA.name().equals(markerB.name());
-
-		boolean coordinatesAreEqual = markerA.coordinates().equals(markerB.coordinates());
-
-		return subjectNameIsEqual && markerNameIsEqual && coordinatesAreEqual;
-	}
-
-	private static Optional<Marker> getCapturedMarker(String markerName)
-	{
-		for (Marker marker : markers)
-		{
-			if (marker.name().equals(markerName))
-			{
-				return Optional.of(marker);
-			}
-		}
-		return Optional.empty();
 	}
 }
