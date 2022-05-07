@@ -12,7 +12,8 @@ public class MarkerTracker
 {
 	private static final long CAPTURE_PERIOD = TimeUnit.SECONDS.toMillis(5);
 
-	// If this period is short, the program will crash (...faster) - Need to investigate 
+	// If this period is short, the program will crash (...faster) - Need to
+	// investigate
 	private static final long RECONNECT_PERIOD = TimeUnit.SECONDS.toMillis(60);
 
 	private List<Marker> markers = new ArrayList<>();
@@ -83,16 +84,6 @@ public class MarkerTracker
 	 * @return A list with all markers in given list, which are not visible <br>
 	 *         (not visible = marker is captured by less than 2 cameras)
 	 */
-	public List<Marker> getVisibleMarkers(List<Marker> markerList)
-	{
-		return markerList.stream().filter(this::isMarkerVisible).toList();
-	}
-
-	/**
-	 * @param markerList
-	 * @return A list with all markers in given list, which are visible <br>
-	 *         (visible = marker is captured by minimum 2 cameras)
-	 */
 	public List<Marker> getNotVisibleMarkers(List<Marker> markerList)
 	{
 		return markerList.stream().filter(marker -> !(isMarkerVisible(marker))).toList();
@@ -136,7 +127,8 @@ public class MarkerTracker
 			String markerName = client.getMarkerName(subjectName, i);
 
 			double[] coordinates = client.getMarkerGlobalTranslation(subjectName, markerName);
-			Coordinates markerCoordinates = new Coordinates(coordinates[0], coordinates[1], coordinates[2]);
+			Coordinates markerCoordinates = new Coordinates(coordinates[0], coordinates[1],
+					coordinates[2]);
 
 			Marker marker = new Marker(subjectName, markerName, markerCoordinates);
 			markersOfSubject.add(marker);
@@ -164,7 +156,7 @@ public class MarkerTracker
 			synchronized (clientProvider)
 			{
 				DataStreamClient newClient = clientProvider.buildClient();
-				while(!newClient.isConnected())
+				while (!newClient.isConnected())
 				{
 					// wait
 				}

@@ -1,11 +1,13 @@
 package marker;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.internal.verification.VerificationModeFactory;
 
 import de.dhbw.rahmlab.vicon.datastream.api.DataStreamClient;
 
@@ -50,6 +52,7 @@ public class MarkerTrackerTest
 
 		/* Be sure to capture one marker */
 		Assert.assertEquals(1, markerTracker.captureCurrentMarkers().size());
+		verify(clientMock).getFrame();
 
 		checkMarkerVisible();
 
@@ -69,10 +72,12 @@ public class MarkerTrackerTest
 	private void checkMarkerVisible()
 	{
 		Assert.assertEquals(0, markerTracker.getNotVisibleMarkers().size());
+		verify(clientMock, VerificationModeFactory.atLeastOnce()).getFrame();
 	}
 
 	private void checkMarkerNotVisible()
 	{
 		Assert.assertEquals(1, markerTracker.getNotVisibleMarkers().size());
+		verify(clientMock, VerificationModeFactory.atLeastOnce()).getFrame();
 	}
 }
