@@ -1,16 +1,28 @@
 package detection;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import controlling.Controller;
+import controlling.Player;
 import detection.detectors.FaultDetector;
+import detection.detectors.NotVisibleMarkerDetector;
+import marker.Coordinates;
+import musical.Melody;
+import musical.Note;
+import musical.NoteName;
+import synthesis.OscillatorType;
 
 public class FaultMonitor
 {
+	private static final int MAXIMUM_HEIGHT = 2500;
 	private List<FaultDetector> detectors;
 	private Thread monitoringThread;
 	private boolean monitorIsActive = false;
+	private Player audioPlayer;
+	private Controller audioController;
 
 	/**
 	 * This class covers monitoring over the given detectors. <br>
@@ -25,13 +37,10 @@ public class FaultMonitor
 	public FaultMonitor(FaultDetector... detectors)
 	{
 		this.detectors = Arrays.asList(detectors);
-		this.monitoringThread = new Thread(() -> {
-			monitorIsActive = true;
-			while (monitorIsActive)
-			{
-				monitor();
-			}
-		});
+		audioController = new Controller();
+		audioController.setOscillatorType(OscillatorType.SAWTOOTH);
+		audioPlayer = audioController.getPlayer();
+		this.monitoringThread = initializeMonitoringThread();
 	}
 
 	public void startMonitoring()
@@ -42,6 +51,17 @@ public class FaultMonitor
 	public void stopMonitoring()
 	{
 		monitorIsActive = false;
+	}
+
+	private Thread initializeMonitoringThread()
+	{
+		return new Thread(() -> {
+			monitorIsActive = true;
+			while (monitorIsActive)
+			{
+				monitor();
+			}
+		});
 	}
 
 	private void monitor()
@@ -59,36 +79,13 @@ public class FaultMonitor
 			return;
 		}
 		Fault fault = optionalFault.get();
-		System.out.println(fault.description());
+
+		audioPlayer.play(SoundFactory.buildErrorSound(fault));
 	}
 
 	public static void main(String[] args)
 	{
-
+		FaultMonitor faultMonitor = new FaultMonitor(new NotVisibleMarkerDetector());
+		faultMonitor.startMonitoring();
 	}
 }
-// MarkerTracker.captureCurrentMarkers();
-// List<Marker> notVisibleMarkers = new ArrayList<>();
-// while (true)
-// {
-// final List<Marker> newNotVisibleMarkers =
-// MarkerTracker.trackAndGetNotVisibleMarkers();
-// for (Marker marker : newNotVisibleMarkers)
-// {
-// if (!MarkerTracker.isMarkerInList(notVisibleMarkers, marker))
-// {
-// System.out.println(marker.name());
-// notVisibleMarkers.add(marker);
-// }
-// }
-//
-// for (Marker marker : notVisibleMarkers)
-// {
-// if (!MarkerTracker.isMarkerInList(newNotVisibleMarkers, marker))
-// {
-// System.out.println(marker.name() + " is visible again!");
-// }
-// }
-//
-// notVisibleMarkers = newNotVisibleMarkers;
-// }
