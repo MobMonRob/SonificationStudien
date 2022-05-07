@@ -12,6 +12,7 @@ import de.dhbw.rahmlab.vicon.datastream.api.DataStreamClient;
 public class MarkerTrackerTest
 {
 	private static DataStreamClient clientMock;
+	private static DataStreamClientProvider clientProviderMock;
 	private static final String SUBJECT = "Subject";
 	private static final String MARKER = "Marker";
 	private MarkerTracker markerTracker;
@@ -30,6 +31,9 @@ public class MarkerTrackerTest
 
 		configureCameraDetectMarkerCount(2);
 
+		clientProviderMock = mock(DataStreamClientProvider.class);
+		when(clientProviderMock.buildClient()).thenReturn(clientMock);
+		when(clientProviderMock.getClient()).thenReturn(clientMock);
 	}
 
 	private static void configureCameraDetectMarkerCount(long count)
@@ -40,7 +44,7 @@ public class MarkerTrackerTest
 	@Test
 	public void test()
 	{
-		markerTracker = new MarkerTracker(clientMock);
+		markerTracker = new MarkerTracker(clientProviderMock);
 
 		configureCameraDetectMarkerCount(2);
 

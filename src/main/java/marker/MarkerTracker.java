@@ -2,20 +2,35 @@ package marker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import de.dhbw.rahmlab.vicon.datastream.api.DataStreamClient;
 
 public class MarkerTracker
 {
-	private List<Marker> markers = new ArrayList<>();
-	private DataStreamClient client;
-	private MarkerTrackerTimer markerTrackerTimer;
+	private static final long CAPTURE_PERIOD = TimeUnit.SECONDS.toMillis(5);
 
-	public MarkerTracker(DataStreamClient client)
+	// If this period is short, the program will crash (...faster) - Need to investigate 
+	private static final long RECONNECT_PERIOD = TimeUnit.SECONDS.toMillis(60);
+
+	private List<Marker> markers = new ArrayList<>();
+	private final DataStreamClientProvider clientProvider;
+	private DataStreamClient client;
+	private final Timer captureTimer;
+	private final Timer reconnectTimer;
+
+	public MarkerTracker(DataStreamClientProvider clientProvider)
 	{
-		this.client = client;
-		markerTrackerTimer = new MarkerTrackerTimer(this);
-		markerTrackerTimer.start();
+		this.clientProvider = clientProvider;
+		this.client = clientProvider.buildClient();
+
+		captureTimer = new Timer();
+		captureTimer.scheduleAtFixedRate(captureTask, CAPTURE_PERIOD, CAPTURE_PERIOD);
+
+		reconnectTimer = new Timer();
+		reconnectTimer.scheduleAtFixedRate(clientReconnectTask, RECONNECT_PERIOD, RECONNECT_PERIOD);
 	}
 
 	/**
@@ -27,7 +42,7 @@ public class MarkerTracker
 	 */
 	public List<Marker> captureCurrentMarkers()
 	{
-		markers = getVisibleMarkers(trackMarkerData());
+		markers = trackMarkerData();
 		return markers;
 	}
 
@@ -83,32 +98,36 @@ public class MarkerTracker
 		return markerList.stream().filter(marker -> !(isMarkerVisible(marker))).toList();
 	}
 
-	public void startMarkerTrackerTimer()
-	{
-		if (!markerTrackerTimer.isAlive())
-		{
-			markerTrackerTimer.run();
-		}
-	}
-
-	public void stopMarkerTrackerTimer()
-	{
-		if (markerTrackerTimer.isAlive())
-		{
-			markerTrackerTimer.interrupt();
-		}
-	}
-
 	private boolean isMarkerVisible(Marker marker)
 	{
 		String subject = marker.subject();
 		String markerName = marker.name();
+
+		client.getFrame();
+		if (!isSubjectEnabled(subject))
+		{
+			return true;
+		}
+
 		long viewCount = client.getMarkerRayContributionCount(subject, markerName);
 		return viewCount >= 2;
 	}
 
+	private boolean isSubjectEnabled(String subject)
+	{
+		for (int i = 0; i < client.getSubjectCount(); i++)
+		{
+			if (client.getSubjectName(i).equals(subject))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private List<Marker> markersInSubject(DataStreamClient client, String subjectName)
 	{
+		client.getFrame();
 		List<Marker> markersOfSubject = new ArrayList<>();
 
 		long markerCount = client.getMarkerCount(subjectName);
@@ -117,8 +136,7 @@ public class MarkerTracker
 			String markerName = client.getMarkerName(subjectName, i);
 
 			double[] coordinates = client.getMarkerGlobalTranslation(subjectName, markerName);
-			Coordinates markerCoordinates = new Coordinates(coordinates[0],
-					coordinates[1], coordinates[2]);
+			Coordinates markerCoordinates = new Coordinates(coordinates[0], coordinates[1], coordinates[2]);
 
 			Marker marker = new Marker(subjectName, markerName, markerCoordinates);
 			markersOfSubject.add(marker);
@@ -126,4 +144,32 @@ public class MarkerTracker
 
 		return markersOfSubject;
 	}
+
+	private TimerTask captureTask = new TimerTask()
+	{
+		// Capture new markers frequently
+		@Override
+		public void run()
+		{
+			captureCurrentMarkers();
+		}
+	};
+
+	private TimerTask clientReconnectTask = new TimerTask()
+	{
+		// Capture new markers frequently
+		@Override
+		public void run()
+		{
+			synchronized (clientProvider)
+			{
+				DataStreamClient newClient = clientProvider.buildClient();
+				while(!newClient.isConnected())
+				{
+					// wait
+				}
+				client = newClient;
+			}
+		}
+	};
 }
