@@ -15,10 +15,10 @@ import de.dhbw.rahmlab.vicon.datastream.api.DataStreamClient;
 public class DataStreamClientProvider
 {
 	private DataStreamClient client;
-	
+
 	public DataStreamClientProvider()
 	{
-		
+		client = buildClient();
 	}
 
 	public DataStreamClient getClient()
@@ -39,11 +39,11 @@ public class DataStreamClientProvider
 
 	public DataStreamClient buildClient()
 	{
-		DataStreamClient client = new DataStreamClient();
-		connectClient(client);
-		setupConnectedClient(client);
+		DataStreamClient newClient = new DataStreamClient();
+		connectClient(newClient);
+		setupConnectedClient(newClient);
 
-		return client;
+		return newClient;
 	}
 
 	private void connectClient(DataStreamClient client)
