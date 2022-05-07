@@ -38,8 +38,7 @@ public class NotVisibleMarkerDetector implements FaultDetector
 		int markerCount = notTrackableMarkers.size();
 		String description = getDescription(markerCount);
 		FaultSeverity severity = getSeverity(markerCount);
-		List<Coordinates> coordinatesList = getCoordinatesList(
-				notTrackableMarkers);
+		List<Coordinates> coordinatesList = getCoordinatesList(notTrackableMarkers);
 
 		return new Fault(severity, description, coordinatesList);
 	}
@@ -49,17 +48,14 @@ public class NotVisibleMarkerDetector implements FaultDetector
 		return String.format("Detected %s not trackable markers", markerCount);
 	}
 
-	private List<Coordinates> getCoordinatesList(
-			List<Marker> notTrackableMarkers)
+	private List<Coordinates> getCoordinatesList(List<Marker> notTrackableMarkers)
 	{
-		return notTrackableMarkers.stream()
-				.flatMap(marker -> Stream.of(marker.coordinates())).toList();
+		return notTrackableMarkers.stream().flatMap(marker -> Stream.of(marker.coordinates()))
+				.toList();
 	}
 
 	private FaultSeverity getSeverity(int notTrackableMarkerCount)
 	{
-		return notTrackableMarkerCount < 2
-				? FaultSeverity.WARNING
-				: FaultSeverity.ERROR;
+		return notTrackableMarkerCount < 2 ? FaultSeverity.WARNING : FaultSeverity.ERROR;
 	}
 }

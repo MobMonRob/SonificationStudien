@@ -1,6 +1,5 @@
 package detection;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -9,15 +8,10 @@ import controlling.Controller;
 import controlling.Player;
 import detection.detectors.FaultDetector;
 import detection.detectors.NotVisibleMarkerDetector;
-import marker.Coordinates;
-import musical.Melody;
-import musical.Note;
-import musical.NoteName;
 import synthesis.OscillatorType;
 
 public class FaultMonitor
 {
-	private static final int MAXIMUM_HEIGHT = 2500;
 	private List<FaultDetector> detectors;
 	private Thread monitoringThread;
 	private boolean monitorIsActive = false;
