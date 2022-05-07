@@ -14,48 +14,50 @@ import de.dhbw.rahmlab.vicon.datastream.api.DataStreamClient;
  */
 public class DataStreamClientProvider
 {
-	private static DataStreamClient dataStreamClient;
-
-	private DataStreamClientProvider()
+	private DataStreamClient client;
+	
+	public DataStreamClientProvider()
 	{
-		// Hide public constructor
+		
 	}
 
-	public static DataStreamClient getClient()
+	public DataStreamClient getClient()
 	{
-		if (dataStreamClient == null)
+		if (client == null)
 		{
-			initializeClient();
+			return buildClient();
 		}
 
-		if (!dataStreamClient.isConnected())
+		if (!client.isConnected())
 		{
-			connectClient();
-			setupConnectedClient();
+			connectClient(client);
+			setupConnectedClient(client);
 		}
 
-		return dataStreamClient;
+		return client;
 	}
 
-	private static void initializeClient()
+	public DataStreamClient buildClient()
 	{
-		dataStreamClient = new DataStreamClient();
-		connectClient();
-		setupConnectedClient();
+		DataStreamClient client = new DataStreamClient();
+		connectClient(client);
+		setupConnectedClient(client);
+
+		return client;
 	}
 
-	private static void connectClient()
+	private void connectClient(DataStreamClient client)
 	{
-		dataStreamClient.connect("192.168.10.1", TimeUnit.SECONDS.toMillis(20));
+		client.connect("192.168.10.1", TimeUnit.SECONDS.toMillis(20));
 	}
 
-	private static void setupConnectedClient()
+	private void setupConnectedClient(DataStreamClient client)
 	{
-		if (dataStreamClient != null && dataStreamClient.isConnected())
+		if (client != null && client.isConnected())
 		{
-			dataStreamClient.enableMarkerData();
-			dataStreamClient.enableMarkerRayData();
-			dataStreamClient.getFrame();
+			client.enableMarkerData();
+			client.enableMarkerRayData();
+			client.getFrame();
 		}
 	}
 }
