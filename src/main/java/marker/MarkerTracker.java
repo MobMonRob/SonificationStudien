@@ -35,11 +35,10 @@ public class MarkerTracker
 	}
 
 	/**
-	 * Capture all markers which are currently visible and save it internally
+	 * Capture all markers which are currently available and save it internally
 	 * for subsequent uses.
 	 * 
-	 * @return A list with all captured (visible) markers (See also
-	 *         {@link #getVisibleMarkers(List)})
+	 * @return A list with all captured markers
 	 */
 	public List<Marker> captureCurrentMarkers()
 	{
@@ -48,7 +47,7 @@ public class MarkerTracker
 	}
 
 	/**
-	 * @return A list with all markers which are registered in vicon system -
+	 * @return A list with all markers which are enabled in vicon system -
 	 *         visible and not visible
 	 */
 	public List<Marker> trackMarkerData()
@@ -66,8 +65,9 @@ public class MarkerTracker
 	}
 
 	/**
-	 * @return A list with all previously captured markers, which are not
-	 *         visible anymore (See also {@link #getNotVisibleMarkers(List)})
+	 * @return A list with all previously captured markers (See also
+	 *         {@link #captureCurrentMarkers()}) which are not visible anymore
+	 *         (See also {@link #getNotVisibleMarkers(List)})
 	 */
 	public List<Marker> getNotVisibleMarkers()
 	{
