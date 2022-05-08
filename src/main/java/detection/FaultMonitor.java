@@ -8,6 +8,7 @@ import controlling.Controller;
 import controlling.Player;
 import detection.detectors.FaultDetector;
 import detection.detectors.NotVisibleMarkerDetector;
+import sound.CoordinateRelatedSoundFactory;
 import synthesis.OscillatorType;
 
 public class FaultMonitor
@@ -74,7 +75,7 @@ public class FaultMonitor
 		}
 		Fault fault = optionalFault.get();
 
-		audioPlayer.play(SoundFactory.buildErrorSound(fault));
+		audioPlayer.play(CoordinateRelatedSoundFactory.buildSound(fault));
 	}
 
 	public static void main(String[] args)
