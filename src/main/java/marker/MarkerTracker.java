@@ -12,15 +12,10 @@ public class MarkerTracker
 {
 	private static final long CAPTURE_PERIOD = TimeUnit.SECONDS.toMillis(5);
 
-	// If this period is short, the program will crash (...faster) - Need to
-	// investigate
-	private static final long RECONNECT_PERIOD = TimeUnit.SECONDS.toMillis(60);
-
 	private List<Marker> markers = new ArrayList<>();
 	private final DataStreamClientProvider clientProvider;
 	private DataStreamClient client;
 	private final Timer captureTimer;
-	private final Timer reconnectTimer;
 
 	public MarkerTracker(DataStreamClientProvider clientProvider)
 	{
@@ -29,9 +24,16 @@ public class MarkerTracker
 
 		captureTimer = new Timer();
 		captureTimer.scheduleAtFixedRate(captureTask, CAPTURE_PERIOD, CAPTURE_PERIOD);
-
-		reconnectTimer = new Timer();
-		reconnectTimer.scheduleAtFixedRate(clientReconnectTask, RECONNECT_PERIOD, RECONNECT_PERIOD);
+	}
+	
+	public void reconnectDataStreamClient()
+	{
+		DataStreamClient newClient = clientProvider.buildClient();
+		DataStreamClient oldClient = client;
+		
+		this.client = newClient;
+		
+		oldClient.disconnect();
 	}
 
 	/**
@@ -127,8 +129,7 @@ public class MarkerTracker
 			String markerName = client.getMarkerName(subjectName, i);
 
 			double[] coordinates = client.getMarkerGlobalTranslation(subjectName, markerName);
-			Coordinates markerCoordinates = new Coordinates(coordinates[0], coordinates[1],
-					coordinates[2]);
+			Coordinates markerCoordinates = new Coordinates(coordinates[0], coordinates[1], coordinates[2]);
 
 			Marker marker = new Marker(subjectName, markerName, markerCoordinates);
 			markersOfSubject.add(marker);
@@ -144,24 +145,6 @@ public class MarkerTracker
 		public void run()
 		{
 			captureCurrentMarkers();
-		}
-	};
-
-	private TimerTask clientReconnectTask = new TimerTask()
-	{
-		// Capture new markers frequently
-		@Override
-		public void run()
-		{
-			synchronized (clientProvider)
-			{
-				DataStreamClient newClient = clientProvider.buildClient();
-				while (!newClient.isConnected())
-				{
-					// wait
-				}
-				client = newClient;
-			}
 		}
 	};
 }
