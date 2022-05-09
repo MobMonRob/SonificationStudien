@@ -73,4 +73,9 @@ public class Coordinates
 	{
 		return String.format("%s %s %s", getX(), getY(), getZ());
 	}
+	
+	public static Coordinates zero()
+	{
+		return new Coordinates(0.0,0.0,0.0);
+	}
 }
