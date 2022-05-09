@@ -2,11 +2,9 @@ package detection.detectors;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import detection.Fault;
 import detection.FaultSeverity;
-import marker.Coordinates;
 import marker.DataStreamClientProvider;
 import marker.Marker;
 import marker.MarkerTracker;
@@ -14,6 +12,7 @@ import marker.MarkerTracker;
 public class NotVisibleMarkerDetector implements FaultDetector
 {
 	private MarkerTracker markerTracker;
+	private List<Marker> markersToDetect;
 
 	public NotVisibleMarkerDetector()
 	{
@@ -21,37 +20,60 @@ public class NotVisibleMarkerDetector implements FaultDetector
 		markerTracker.captureCurrentMarkers();
 	}
 
+	public void setMarkerToDetect(List<Marker> markersToDetect)
+	{
+		this.markersToDetect = markersToDetect;
+	}
+
 	@Override
 	public Optional<Fault> detect()
 	{
-		List<Marker> notTrackableMarkers = markerTracker.getNotVisibleMarkers();
-		if (notTrackableMarkers.isEmpty())
+		List<Marker> filteredMarkers = filterMarkers(markerTracker.getNotVisibleMarkers());
+		if (filteredMarkers.isEmpty())
 		{
 			return Optional.empty();
 		}
 
-		return Optional.of(buildFault(notTrackableMarkers));
+		return Optional.of(buildFault(filteredMarkers));
+	}
+
+	private List<Marker> filterMarkers(List<Marker> notTrackableMarkers)
+	{
+		return notTrackableMarkers.stream().filter(this::isMarkerToDetect).toList();
+	}
+
+	private boolean isMarkerToDetect(Marker marker)
+	{
+		for (Marker markerToDetect : markersToDetect)
+		{
+			boolean subjectEqual = markerToDetect.subject().equals(marker.subject());
+			boolean nameEqual = markerToDetect.name().equals(marker.name());
+			if (subjectEqual && nameEqual)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private Fault buildFault(List<Marker> notTrackableMarkers)
 	{
 		int markerCount = notTrackableMarkers.size();
-		String description = getDescription(markerCount);
+		String description = getDescription(notTrackableMarkers);
 		FaultSeverity severity = getSeverity(markerCount);
-		List<Coordinates> coordinatesList = getCoordinatesList(notTrackableMarkers);
 
-		return new Fault(severity, description, coordinatesList);
+		return new Fault(severity, description, notTrackableMarkers);
 	}
 
-	private String getDescription(int markerCount)
+	private String getDescription(List<Marker> notTrackableMarkers)
 	{
-		return String.format("Detected %s not trackable markers", markerCount);
-	}
-
-	private List<Coordinates> getCoordinatesList(List<Marker> notTrackableMarkers)
-	{
-		return notTrackableMarkers.stream().flatMap(marker -> Stream.of(marker.coordinates()))
-				.toList();
+		StringBuilder sb = new StringBuilder();
+		sb.append("Detected following markers as not visible: ");
+		for (Marker marker : notTrackableMarkers)
+		{
+			sb.append(marker.name() + ", ");
+		}
+		return sb.toString();
 	}
 
 	private FaultSeverity getSeverity(int notTrackableMarkerCount)
