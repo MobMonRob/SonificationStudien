@@ -44,6 +44,11 @@ public class NotVisibleMarkerDetector implements FaultDetector
 
 	private boolean isMarkerToDetect(Marker marker)
 	{
+		if (null == markersToDetect || markersToDetect.isEmpty())
+		{
+			return true;
+		}
+		
 		for (Marker markerToDetect : markersToDetect)
 		{
 			boolean subjectEqual = markerToDetect.subject().equals(marker.subject());

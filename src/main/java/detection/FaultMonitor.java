@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import detection.detectors.FaultDetector;
 import detection.detectors.NotVisibleMarkerDetector;
-import marker.Coordinates;
 import marker.Marker;
 import sound.CountRelatedSoundFactory;
 import sound.SoundFactory;
@@ -85,13 +84,8 @@ public class FaultMonitor
 
 	public static void main(String[] args)
 	{
-		Marker baseMarker1 = new Marker("BASE", "BASE1", Coordinates.zero());
-		Marker baseMarker2 = new Marker("BASE", "BASE2", Coordinates.zero());
-		Marker baseMarker3 = new Marker("BASE", "BASE3", Coordinates.zero());
-		Marker baseMarker4 = new Marker("BASE", "BASE4", Coordinates.zero());
-		List<Marker> markerList = Arrays.asList(baseMarker1, baseMarker2, baseMarker3, baseMarker4);
 
-		FaultMonitor faultMonitor = new FaultMonitor(markerList, new NotVisibleMarkerDetector());
+		FaultMonitor faultMonitor = new FaultMonitor(Arrays.asList(), new NotVisibleMarkerDetector());
 		faultMonitor.startMonitoring();
 	}
 }
