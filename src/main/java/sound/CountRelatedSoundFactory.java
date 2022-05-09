@@ -3,38 +3,47 @@ package sound;
 import java.util.ArrayList;
 import java.util.List;
 
+import configuration.EnvelopeConfiguration;
+import controlling.Controller;
+import controlling.Player;
 import detection.Fault;
 import musical.Chord;
 import musical.Note;
 import musical.NoteName;
 import musical.Playable;
+import synthesis.OscillatorType;
 
 public class CountRelatedSoundFactory implements SoundFactory
 {
+	private static final int DEFAULT_OCTAVE = 4;
 	private static final int SEMITONES_PER_OCTAVE = 12;
 	private static final int SEMITONE_STEPS = 5;
 	private static final int MAX_OCTAVE_COUNT = 8;
+
 	private int maxCount;
 	private List<Playable> prebuildPlayables = new ArrayList<>();
+	private Controller audioController;
+	private Player player;
 
 	public CountRelatedSoundFactory(int maxCount)
 	{
 		this.maxCount = maxCount;
 		initPlayables();
+
+		audioController = new Controller();
+		audioController.setOscillatorType(OscillatorType.TRIANGLE);
+		audioController
+				.applyEnvelopeConfiguration(new EnvelopeConfiguration(0.0, 0.0, 0.1, 0.1, 1.0));
+		player = audioController.getPlayer();
 	}
 
 	@Override
-	public Playable buildSound(Fault fault)
+	public Playable playSound(Fault fault)
 	{
-		List<Note> noteList = new ArrayList<>();
-		for (int i = 0; i < fault.coordinates().size(); i++)
-		{
-
-		}
-
-		Note[] notes = noteList.toArray(new Note[noteList.size()]);
-
-		return new Chord(50, notes);
+		int count = fault.coordinates().size();
+		Playable playable = prebuildPlayables.get(count % maxCount);
+		player.play(playable);
+		return playable;
 	}
 
 	private void initPlayables()
@@ -52,13 +61,13 @@ public class CountRelatedSoundFactory implements SoundFactory
 		{
 			int globalNoteIndex = 0 + (i * SEMITONE_STEPS);
 			int noteIndex = globalNoteIndex % SEMITONES_PER_OCTAVE;
-			int octave = globalNoteIndex / SEMITONES_PER_OCTAVE;
+			int octave = DEFAULT_OCTAVE + globalNoteIndex / SEMITONES_PER_OCTAVE;
 			notes.add(buildNote(noteIndex, octave));
 
 		}
 		Note[] noteArray = notes.toArray(new Note[count]);
 
-		return new Chord(50, noteArray);
+		return new Chord(1000, noteArray);
 	}
 
 	private Note buildNote(int noteIndex, int octave)

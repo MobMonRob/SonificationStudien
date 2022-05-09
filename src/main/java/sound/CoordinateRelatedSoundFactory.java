@@ -3,6 +3,8 @@ package sound;
 import java.util.ArrayList;
 import java.util.List;
 
+import controlling.Controller;
+import controlling.Player;
 import detection.Fault;
 import marker.Coordinates;
 import musical.Chord;
@@ -14,21 +16,30 @@ public class CoordinateRelatedSoundFactory implements SoundFactory
 {
 	private final CoordinateType coordinateType;
 	private final double maximum;
+	private Controller audioController;
+	private Player player;
 
 	public CoordinateRelatedSoundFactory(CoordinateType coordinateType, double maximumValue)
 	{
 		this.coordinateType = coordinateType;
 		this.maximum = maximumValue;
+
+		audioController = new Controller();
+		player = audioController.getPlayer();
 	}
 
-	public Playable buildSound(Fault fault)
+	public Playable playSound(Fault fault)
 	{
 		List<Note> noteList = new ArrayList<>();
 		for (Coordinates coordinates : fault.coordinates())
 		{
 			noteList.add(buildCoordinateRelatedNote(getCoordinate(coordinates)));
 		}
-		return new Chord(50, noteList.toArray(new Note[noteList.size()]));
+		Note[] notes = noteList.toArray(new Note[noteList.size()]);
+
+		Playable playable = new Chord(50, notes);
+		player.play(playable);
+		return playable;
 	}
 
 	private double getCoordinate(Coordinates coordinates)

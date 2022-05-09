@@ -5,5 +5,5 @@ import musical.Playable;
 
 public interface SoundFactory
 {
-	public Playable buildSound(Fault fault);
+	public Playable playSound(Fault fault);
 }

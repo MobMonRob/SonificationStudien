@@ -5,19 +5,17 @@ import java.util.List;
 import java.util.Optional;
 
 import controlling.Controller;
-import controlling.Player;
 import detection.detectors.FaultDetector;
 import detection.detectors.NotVisibleMarkerDetector;
-import sound.CoordinateRelatedSoundFactory;
-import synthesis.OscillatorType;
+import sound.CountRelatedSoundFactory;
+import sound.SoundFactory;
 
 public class FaultMonitor
 {
 	private List<FaultDetector> detectors;
 	private Thread monitoringThread;
 	private boolean monitorIsActive = false;
-	private Player audioPlayer;
-	private Controller audioController;
+	private SoundFactory soundFactory;
 
 	/**
 	 * This class covers monitoring over the given detectors. <br>
@@ -32,10 +30,9 @@ public class FaultMonitor
 	public FaultMonitor(FaultDetector... detectors)
 	{
 		this.detectors = Arrays.asList(detectors);
-		audioController = new Controller();
-		audioController.setOscillatorType(OscillatorType.SAWTOOTH);
-		audioPlayer = audioController.getPlayer();
 		this.monitoringThread = initializeMonitoringThread();
+
+		soundFactory = new CountRelatedSoundFactory(5);
 	}
 
 	public void startMonitoring()
@@ -75,7 +72,7 @@ public class FaultMonitor
 		}
 		Fault fault = optionalFault.get();
 
-		audioPlayer.play(CoordinateRelatedSoundFactory.buildSound(fault));
+		soundFactory.playSound(fault);
 	}
 
 	public static void main(String[] args)
