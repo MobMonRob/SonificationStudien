@@ -2,37 +2,28 @@ package marker;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 import de.dhbw.rahmlab.vicon.datastream.api.DataStreamClient;
 
 public class MarkerTracker
 {
-	private static final long CAPTURE_PERIOD = TimeUnit.SECONDS.toMillis(5);
-
 	private List<Marker> markers = new ArrayList<>();
 	private final DataStreamClientProvider clientProvider;
 	private DataStreamClient client;
-	private final Timer captureTimer;
 
 	public MarkerTracker(DataStreamClientProvider clientProvider)
 	{
 		this.clientProvider = clientProvider;
 		this.client = clientProvider.buildClient();
-
-		captureTimer = new Timer();
-		captureTimer.scheduleAtFixedRate(captureTask, CAPTURE_PERIOD, CAPTURE_PERIOD);
 	}
-	
+
 	public void reconnectDataStreamClient()
 	{
 		DataStreamClient newClient = clientProvider.buildClient();
 		DataStreamClient oldClient = client;
-		
+
 		this.client = newClient;
-		
+
 		oldClient.disconnect();
 	}
 
@@ -137,14 +128,4 @@ public class MarkerTracker
 
 		return markersOfSubject;
 	}
-
-	private TimerTask captureTask = new TimerTask()
-	{
-		// Capture new markers frequently
-		@Override
-		public void run()
-		{
-			captureCurrentMarkers();
-		}
-	};
 }
