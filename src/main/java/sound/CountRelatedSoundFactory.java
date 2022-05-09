@@ -7,7 +7,7 @@ import configuration.EnvelopeConfiguration;
 import controlling.Controller;
 import controlling.Player;
 import detection.Fault;
-import musical.Chord;
+import musical.Melody;
 import musical.Note;
 import musical.NoteName;
 import musical.Playable;
@@ -67,7 +67,7 @@ public class CountRelatedSoundFactory implements SoundFactory
 		}
 		Note[] noteArray = notes.toArray(new Note[count]);
 
-		return new Chord(1000, noteArray);
+		return new Melody(50, noteArray);
 	}
 
 	private Note buildNote(int noteIndex, int octave)
