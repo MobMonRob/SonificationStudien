@@ -3,10 +3,13 @@ package detection;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import controlling.Controller;
 import detection.detectors.FaultDetector;
 import detection.detectors.NotVisibleMarkerDetector;
+import marker.Coordinates;
+import marker.Marker;
 import sound.CountRelatedSoundFactory;
 import sound.SoundFactory;
 
@@ -27,9 +30,13 @@ public class FaultMonitor
 	 * 
 	 * @param detectors
 	 */
-	public FaultMonitor(FaultDetector... detectors)
+	public FaultMonitor(List<Marker> markersToMonitor, FaultDetector... detectors)
 	{
 		this.detectors = Arrays.asList(detectors);
+		for (FaultDetector faultDetector : detectors)
+		{
+			faultDetector.setMarkerToDetect(markersToMonitor);
+		}
 		this.monitoringThread = initializeMonitoringThread();
 
 		soundFactory = new CountRelatedSoundFactory(5);
@@ -72,12 +79,19 @@ public class FaultMonitor
 		}
 		Fault fault = optionalFault.get();
 
+		Logger.getAnonymousLogger().log(Level.INFO, fault.description());
 		soundFactory.playSound(fault);
 	}
 
 	public static void main(String[] args)
 	{
-		FaultMonitor faultMonitor = new FaultMonitor(new NotVisibleMarkerDetector());
+		Marker baseMarker1 = new Marker("BASE", "BASE1", Coordinates.zero());
+		Marker baseMarker2 = new Marker("BASE", "BASE2", Coordinates.zero());
+		Marker baseMarker3 = new Marker("BASE", "BASE3", Coordinates.zero());
+		Marker baseMarker4 = new Marker("BASE", "BASE4", Coordinates.zero());
+		List<Marker> markerList = Arrays.asList(baseMarker1, baseMarker2, baseMarker3, baseMarker4);
+
+		FaultMonitor faultMonitor = new FaultMonitor(markerList, new NotVisibleMarkerDetector());
 		faultMonitor.startMonitoring();
 	}
 }
