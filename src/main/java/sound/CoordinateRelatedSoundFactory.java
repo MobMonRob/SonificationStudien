@@ -2,11 +2,13 @@ package sound;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import controlling.Controller;
 import controlling.Player;
 import detection.Fault;
 import marker.Coordinates;
+import marker.Marker;
 import musical.Chord;
 import musical.Note;
 import musical.NoteName;
@@ -31,7 +33,8 @@ public class CoordinateRelatedSoundFactory implements SoundFactory
 	public Playable playSound(Fault fault)
 	{
 		List<Note> noteList = new ArrayList<>();
-		for (Coordinates coordinates : fault.coordinates())
+		List<Coordinates> coordinatesList = getCoordinatesList(fault.markers());
+		for (Coordinates coordinates : coordinatesList)
 		{
 			noteList.add(buildCoordinateRelatedNote(getCoordinate(coordinates)));
 		}
@@ -40,6 +43,11 @@ public class CoordinateRelatedSoundFactory implements SoundFactory
 		Playable playable = new Chord(50, notes);
 		player.play(playable);
 		return playable;
+	}
+
+	private List<Coordinates> getCoordinatesList(List<Marker> notTrackableMarkers)
+	{
+		return notTrackableMarkers.stream().flatMap(marker -> Stream.of(marker.coordinates())).toList();
 	}
 
 	private double getCoordinate(Coordinates coordinates)
@@ -79,7 +87,7 @@ public class CoordinateRelatedSoundFactory implements SoundFactory
 		return (int) (maximumOfNewRange * proportion);
 	}
 
-	enum CoordinateType
+	public enum CoordinateType
 	{
 		X, Y, Z;
 	}

@@ -40,15 +40,15 @@ public class CountRelatedSoundFactory implements SoundFactory
 	@Override
 	public Playable playSound(Fault fault)
 	{
-		int count = fault.coordinates().size();
-		Playable playable = prebuildPlayables.get(count % maxCount);
+		int count = fault.markers().size();
+		Playable playable = prebuildPlayables.get(count - 1 % maxCount);
 		player.play(playable);
 		return playable;
 	}
 
 	private void initPlayables()
 	{
-		for (int i = 0; i < maxCount; i++)
+		for (int i = 0; i <= maxCount; i++)
 		{
 			prebuildPlayables.add(buildPlayable(i));
 		}
@@ -57,9 +57,9 @@ public class CountRelatedSoundFactory implements SoundFactory
 	private Playable buildPlayable(int count)
 	{
 		List<Note> notes = new ArrayList<>();
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i <= count; i++)
 		{
-			int globalNoteIndex = 0 + (i * SEMITONE_STEPS);
+			int globalNoteIndex = count + (i * SEMITONE_STEPS);
 			int noteIndex = globalNoteIndex % SEMITONES_PER_OCTAVE;
 			int octave = DEFAULT_OCTAVE + globalNoteIndex / SEMITONES_PER_OCTAVE;
 			notes.add(buildNote(noteIndex, octave));
