@@ -20,6 +20,8 @@ public class CoordinateRelatedSoundFactory implements SoundFactory
 	private final double maximum;
 	private Controller audioController;
 	private Player player;
+	private Fault currentFault;
+	private Playable currentPlayable;
 
 	public CoordinateRelatedSoundFactory(CoordinateType coordinateType, double maximumValue)
 	{
@@ -32,8 +34,13 @@ public class CoordinateRelatedSoundFactory implements SoundFactory
 
 	public Playable playSound(Fault fault)
 	{
+		if (currentFault.equals(fault))
+		{
+			return null;
+		}
+
 		Playable playable = buildPlayable(fault);
-		player.play(playable);
+		playAndHold(playable);
 		return playable;
 	}
 
@@ -48,6 +55,45 @@ public class CoordinateRelatedSoundFactory implements SoundFactory
 		Note[] notes = noteList.toArray(new Note[noteList.size()]);
 
 		return new Chord(50, notes);
+	}
+
+	@Override
+	public void stopSound()
+	{
+		stopHoldingNotes();
+	}
+
+	private void playAndHold(Playable playable)
+	{
+		if (playable == currentPlayable)
+		{
+			return;
+		}
+
+		if (currentPlayable != null)
+		{
+			stopHoldingNotes();
+		}
+
+		for (Note note : playable.getNotes())
+		{
+			player.noteOn(note);
+		}
+		currentPlayable = playable;
+	}
+
+	private void stopHoldingNotes()
+	{
+		if (currentPlayable == null)
+		{
+			return;
+		}
+
+		for (Note note : currentPlayable.getNotes())
+		{
+			player.noteOff(note);
+		}
+		currentPlayable = null;
 	}
 
 	private List<Coordinates> getCoordinatesList(List<Marker> notTrackableMarkers)

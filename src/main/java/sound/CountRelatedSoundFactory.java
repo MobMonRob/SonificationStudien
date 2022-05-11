@@ -24,6 +24,7 @@ public class CountRelatedSoundFactory implements SoundFactory
 	private Controller audioController;
 	private Player player;
 	private Fault currentFault;
+	private Playable currentPlayable;
 
 	public CountRelatedSoundFactory(int maxCount)
 	{
@@ -46,8 +47,47 @@ public class CountRelatedSoundFactory implements SoundFactory
 		}
 
 		Playable playable = prebuildPlayables.get(count - 1 % maxCount);
-		player.play(playable);
+		playAndHold(playable);
 		return playable;
+	}
+
+	@Override
+	public void stopSound()
+	{
+		stopHoldingNotes();
+	}
+
+	private void playAndHold(Playable playable)
+	{
+		if (playable == currentPlayable)
+		{
+			return;
+		}
+
+		if (currentPlayable != null)
+		{
+			stopHoldingNotes();
+		}
+
+		for (Note note : playable.getNotes())
+		{
+			player.noteOn(note);
+		}
+		currentPlayable = playable;
+	}
+
+	private void stopHoldingNotes()
+	{
+		if (currentPlayable == null)
+		{
+			return;
+		}
+
+		for (Note note : currentPlayable.getNotes())
+		{
+			player.noteOff(note);
+		}
+		currentPlayable = null;
 	}
 
 	private void initPlayables()

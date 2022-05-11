@@ -18,6 +18,7 @@ public class FaultMonitor
 	private Thread monitoringThread;
 	private boolean monitorIsActive = false;
 	private SoundFactory soundFactory;
+	private Fault latestFault;
 
 	/**
 	 * This class covers monitoring over the given detectors. <br>
@@ -77,6 +78,10 @@ public class FaultMonitor
 			return;
 		}
 		Fault fault = optionalFault.get();
+		if (fault.equals(latestFault))
+		{
+			soundFactory.playSound(fault);
+		}
 
 		Logger.getAnonymousLogger().log(Level.INFO, fault.description());
 		soundFactory.playSound(fault);

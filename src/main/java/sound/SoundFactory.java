@@ -6,4 +6,6 @@ import musical.Playable;
 public interface SoundFactory
 {
 	public Playable playSound(Fault fault);
+
+	public void stopSound();
 }
