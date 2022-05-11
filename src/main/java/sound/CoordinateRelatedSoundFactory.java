@@ -32,6 +32,13 @@ public class CoordinateRelatedSoundFactory implements SoundFactory
 
 	public Playable playSound(Fault fault)
 	{
+		Playable playable = buildPlayable(fault);
+		player.play(playable);
+		return playable;
+	}
+
+	public Playable buildPlayable(Fault fault)
+	{
 		List<Note> noteList = new ArrayList<>();
 		List<Coordinates> coordinatesList = getCoordinatesList(fault.markers());
 		for (Coordinates coordinates : coordinatesList)
@@ -40,14 +47,13 @@ public class CoordinateRelatedSoundFactory implements SoundFactory
 		}
 		Note[] notes = noteList.toArray(new Note[noteList.size()]);
 
-		Playable playable = new Chord(50, notes);
-		player.play(playable);
-		return playable;
+		return new Chord(50, notes);
 	}
 
 	private List<Coordinates> getCoordinatesList(List<Marker> notTrackableMarkers)
 	{
-		return notTrackableMarkers.stream().flatMap(marker -> Stream.of(marker.coordinates())).toList();
+		return notTrackableMarkers.stream().flatMap(marker -> Stream.of(marker.coordinates()))
+				.toList();
 	}
 
 	private double getCoordinate(Coordinates coordinates)

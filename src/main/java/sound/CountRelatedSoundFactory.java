@@ -3,7 +3,6 @@ package sound;
 import java.util.ArrayList;
 import java.util.List;
 
-import configuration.EnvelopeConfiguration;
 import controlling.Controller;
 import controlling.Player;
 import detection.Fault;
@@ -24,6 +23,7 @@ public class CountRelatedSoundFactory implements SoundFactory
 	private List<Playable> prebuildPlayables = new ArrayList<>();
 	private Controller audioController;
 	private Player player;
+	private Fault currentFault;
 
 	public CountRelatedSoundFactory(int maxCount)
 	{
@@ -32,8 +32,7 @@ public class CountRelatedSoundFactory implements SoundFactory
 
 		audioController = new Controller();
 		audioController.setOscillatorType(OscillatorType.TRIANGLE);
-		audioController
-				.applyEnvelopeConfiguration(new EnvelopeConfiguration(0.0, 0.0, 0.1, 0.1, 1.0));
+		audioController.applyPreset(SoundPresets.countRelatedPreset());
 		player = audioController.getPlayer();
 	}
 
@@ -41,6 +40,11 @@ public class CountRelatedSoundFactory implements SoundFactory
 	public Playable playSound(Fault fault)
 	{
 		int count = fault.markers().size();
+		if (currentFault.markers().size() == count)
+		{
+			return null;
+		}
+
 		Playable playable = prebuildPlayables.get(count - 1 % maxCount);
 		player.play(playable);
 		return playable;
