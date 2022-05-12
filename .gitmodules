@@ -1,0 +1,3 @@
+[submodule "JavaAudioSynthesizer"]
+	path = JavaAudioSynthesizer
+	url = https://github.com/SirHrtmn/JavaAudioSynthesizer.git
